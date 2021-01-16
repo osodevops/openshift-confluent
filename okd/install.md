@@ -392,3 +392,21 @@ At this point, you can expect to wait (:coffee:) around 35 minutes in total. Ter
 
 Any errors about `Route reflector` can be ignored, as long as they do not persist more than a few mins / half-a-dozen or so messages.
 
+As things progress, you'll see some positive milestones:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install create cluster --dir ckc1
+INFO Credentials loaded from default AWS environment variables 
+INFO Consuming Bootstrap Ignition Config from target directory 
+INFO Consuming Master Ignition Config from target directory 
+INFO Consuming Worker Ignition Config from target directory 
+INFO Creating infrastructure resources...         
+INFO Waiting up to 20m0s for the Kubernetes API at https://api.ckc1.okd.osodevops.io:6443... 
+INFO API v1.19.2-1008+70708036fc2657-dirty up     
+INFO Waiting up to 30m0s for bootstrapping to complete... 
+```
+
+We continue to wait, however - a large status dump will appear once complete:
+
+
+
