@@ -247,8 +247,33 @@ But you see where this is going. Caveat Emptor.
 
 In order to generate the manifests so that we can customise, do the following:
 
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install create manifests --dir ckc1
+INFO Credentials loaded from default AWS environment variables 
+INFO Consuming Install Config from target directory 
+INFO Manifests created in: ckc1/manifests and ckc1/openshift 
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
 
+Investigate the artefact directory:
 
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ cd ckc1/manifests/
+(AWS: oso_okd-admin)_[dsw@orgonon manifests]$ ls
+04-openshift-machine-config-operator.yaml  cluster-network-02-config.yml    etcd-metric-client-secret.yaml         etcd-signer-secret.yaml
+cluster-config.yaml                        cluster-proxy-01-config.yaml     etcd-metric-serving-ca-configmap.yaml  kube-cloud-config.yaml
+cluster-dns-02-config.yml                  cluster-scheduler-02-config.yml  etcd-metric-signer-secret.yaml         kube-system-configmap-root-ca.yaml
+cluster-infrastructure-02-config.yml       cvo-overrides.yaml               etcd-namespace.yaml                    machine-config-server-tls-secret.yaml
+cluster-ingress-02-config.yml              etcd-ca-bundle-configmap.yaml    etcd-service.yaml                      openshift-config-secret-pull-secret.yaml
+cluster-network-01-crd.yml                 etcd-client-secret.yaml          etcd-serving-ca-configmap.yaml
+(AWS: oso_okd-admin)_[dsw@orgonon manifests]$ 
+```
 
+For a typical install, we'll generally be interested in two items:
+
+- `cluster-ingress-02-config.yml`
+    It is here that we remove the `apps` part
+- `cluster-infrastructure-02-config.yml`
+    Change AWS instance type here
 
     
