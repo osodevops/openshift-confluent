@@ -445,4 +445,4 @@ INFO Time elapsed: 36m21s
 (AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
 ```
 
-Cluster creation is now complete.
+Cluster creation is now complete.  TODO: Add Day2 ops.
