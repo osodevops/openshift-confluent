@@ -241,7 +241,7 @@ But you see where this is going. Caveat Emptor.
 If you don't select a custom hostname endpoint for an `Ingress/Route`, then OKD will give you `<service>-<project>`, so that will be tacked onto the front of the now `apps`-less FQDN, so you should be safe. The danger comes when using custom hostname endpoints. More on this later.
 
 
-#### 1.3.3 Generating the Manifests
+#### 1.3.3 Adjusting the Manifests
 
 :fire: WARNING :fire:
 - The `install-config.yaml` lives, by default after creation, in the artefact directory. Any operations on it like manifest generation will actually _consume_ (delete) the file. This is a curious design choice, but I am told it's for the best. :shrug:.
@@ -307,4 +307,71 @@ Edit the `cluster-ingress-02-config.yml` file and simply remove `apps.` (don't f
 
 ##### 1.3.3.2 Adjusting the AWS instance type
 
+From version 4.6, the instance type by default for masters/workers is `m5.xlarge`. This turns out to be slightly underpowered for the workers, which, when commercial deployments such as 3scale API Gateway, or IBM's API Connect start to lay waste to the CPU/RAM, you'll quickly be met with `Pending` pods. We won't be changing the workers yet, though - otherwise we would be paying extra money. We shall change the masters now, but leave the workers for later, where we can perform a similar operation to EKS' `eksctl scale nodegroup`.
+
+Also, note that by default, Intel-based instances are chosen. Save money by changing to 'a'-series `m5a.xlarge`.
+
+Change the masters' instance type to `m5a.xlarge` by editing `cluster-config.yml`:
+
+```
+apiVersion: v1
+data:
+  install-config: |
+    apiVersion: v1
+    baseDomain: okd.osodevops.io
+    compute:
+    - architecture: amd64
+      hyperthreading: Enabled
+      name: worker
+      platform: {}
+      replicas: 3
+    controlPlane:
+      architecture: amd64
+      hyperthreading: Enabled
+      name: master
+      platform:
+        aws:
+          amiID: ami-0019e3a63434bf7d6
+          rootVolume:
+            iops: 0
+            size: 120
+            type: gp2
+          type: m5.xlarge                         <-- change to m5a.xlarge
+          zones:
+          - eu-west-1a
+          - eu-west-1b
+          - eu-west-1c
+      replicas: 3
+```
+    
+We are done here, so come out of the artefact directory, back to where `openshift-install` lives.
+
+#### 1.4 Create the ignition configs
+
+This step is not necessarily needed, but is best practice to run.
+
+The manifests are bundled up into ignition configs (CoreOS invented the ignition format, and Red Hat purchased CoreOS), and are then injected into the AMIs which eventually become the EC2 instances for the OKD masters/workers.
+
+Execute:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install create ignition-configs --dir ckc1
+INFO Consuming Worker Machines from target directory 
+INFO Consuming Master Machines from target directory 
+INFO Consuming Common Manifests from target directory 
+INFO Consuming OpenShift Install (Manifests) from target directory 
+INFO Consuming Openshift Manifests from target directory 
+INFO Ignition-Configs created in: ckc1 and ckc1/auth 
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
+
+We now have our `auth` dir (containing `kubeconfig` and `kubeadmin`'s password), as well as the master/worker ignition files, and some state:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ls ckc1/
+auth  bootstrap.ign  master.ign  metadata.json  worker.ign
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
+
+All done here - we are now ready to install.
 
