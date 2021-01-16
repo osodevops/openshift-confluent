@@ -446,3 +446,19 @@ INFO Time elapsed: 36m21s
 ```
 
 Cluster creation is now complete.  TODO: Add Day2 ops.
+
+# 3. Destruction of OKD cluster
+
+If you need to destroy the cluster, simply execute:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install destroy cluster --dir ckc1/
+INFO Credentials loaded from default AWS environment variables 
+INFO Disassociated                                 instance=i-0e40403cd933866d0 name=ckc1-s7phs-master-profile role=ckc1-s7phs-master-role
+INFO Deleted                                       InstanceProfileName=ckc1-s7phs-master-profile arn="arn:aws:iam::498266025115:instance-profile/ckc1-s7phs-master-profile" instance=i-0e40403cd933866d0
+INFO Disassociated                                 instance=i-0436447647934177a name=ckc1-s7phs-worker-profile role=ckc1-s7phs-worker-role
+INFO Deleted                                       InstanceProfileName=ckc1-s7phs-worker-profile arn="arn:aws:iam::498266025115:instance-profile/ckc1-s7phs-worker-profile" instance=i-0436447647934177a
+INFO Terminated                                    instance=i-0027d0216323bfd3c
+. . . .
+```
+The state from the artefact directory will also be deleted. It's best practice to completely delete the artefact directory afterwards, as it contains a dotfile (the logs from previous install/destroy).
