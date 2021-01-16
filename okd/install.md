@@ -4,7 +4,7 @@
 
 ## 1. Preparation and Prerequisites
 
-In order to install an OpenShift (hereinafter referred to as `OKD`) cluster on AWS, we first need a subdomain, which is also be the name of the cluster itself; OKD's architecture is such that DNS is bound tightly to core aspects of the setup, which is challenging in on-prem scenarios.
+In order to install an OpenShift (hereinafter referred to as `OKD`) cluster on AWS, need an idea of DNS layout. We'll need up to a couple of subdomains, one of which is also to be the name of the cluster itself; OKD's architecture is such that DNS is bound tightly to core aspects of the setup (which is challenging in on-prem scenarios).
 
 However, for AWS, it's plain-sailing.
 
@@ -404,6 +404,22 @@ INFO Creating infrastructure resources...
 INFO Waiting up to 20m0s for the Kubernetes API at https://api.ckc1.okd.osodevops.io:6443... 
 INFO API v1.19.2-1008+70708036fc2657-dirty up     
 INFO Waiting up to 30m0s for bootstrapping to complete... 
+```
+
+Getting there:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install create cluster --dir ckc1
+INFO Credentials loaded from default AWS environment variables 
+INFO Consuming Bootstrap Ignition Config from target directory 
+INFO Consuming Master Ignition Config from target directory 
+INFO Consuming Worker Ignition Config from target directory 
+INFO Creating infrastructure resources...         
+INFO Waiting up to 20m0s for the Kubernetes API at https://api.ckc1.okd.osodevops.io:6443... 
+INFO API v1.19.2-1008+70708036fc2657-dirty up     
+INFO Waiting up to 30m0s for bootstrapping to complete... 
+INFO Destroying the bootstrap resources...        
+INFO Waiting up to 40m0s for the cluster at https://api.ckc1.okd.osodevops.io:6443 to initialize... 
 ```
 
 We continue to wait, however - a large status dump will appear once complete:
