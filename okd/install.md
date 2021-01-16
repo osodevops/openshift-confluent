@@ -390,3 +390,5 @@ INFO Creating infrastructure resources...
 
 At this point, you can expect to wait (:coffee:) around 35 minutes in total. Terraforming is going-on, and all resources are being tagged for quick cleanup later. You won't be doing any manual TF work - everything is self-contained.
 
+Any errors about `Route reflector` can be ignored, as long as they do not persist more than a few mins / half-a-dozen or so messages.
+
