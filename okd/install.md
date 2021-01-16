@@ -150,7 +150,9 @@ INFO Credentials loaded from default AWS environment variables
 INFO Install-Config created in: ckc1              
 (AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
 ```
-Now we have the `install-config.yaml` file
+Now we have the `install-config.yaml` file inside our artefact directory (`ckc1` - conveniently we name it the same as the cluster name).
+
+
 
 
 
