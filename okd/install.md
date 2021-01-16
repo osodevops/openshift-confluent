@@ -209,9 +209,22 @@ If you wish to have more, or less workers, then you can adjust this as above. Ho
 
 If in doubt, leave it as default 3 masters, 3 workers.
 
-#### 1.3.2 Generate the manifests
+#### 1.3.2 A word on removing `apps` from the ingress/`Router`
 
+As previously mentioned, we can do away with the annoying `apps` subdomain. If we keep it, then all pods/workloads will have the following nomenclature:
 
+    <service>-<project>.apps.<clustername>.<basedomain>.osodevops.io
+
+**NOTE**
+- OKD uses the term `Project` for the Kubernetes `Namespace` object. The `Project` has additional security such as uid range, and `oc project <PROJECT>` will do the equivalent of `kubectl config set-context --current --namespace <NAMESPACE>`, which is a convenient life hack for us.
+
+As you can see from the above FQDN placeholder for a typical deployment, it can get ugly. The default OKD console address for our impending install will be:
+
+    console-openshift-console.apps.ckc1.okd.osodevops.io
+    
+Truly grim. However, the general rule of thumb on OpenShift in general is to not touch the defaults for the default subsystems deployed on our behalf by the system, unless you absolutely have to - madness that way lies. Exceptions to this rule are the Ingress (known as the `Router`) - replacing the self-signed cert is a matter of course.
+
+By
 
 
 
