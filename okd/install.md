@@ -375,3 +375,18 @@ auth  bootstrap.ign  master.ign  metadata.json  worker.ign
 
 All done here - we are now ready to install.
 
+## 2. Installation of OKD
+
+Locate yourself in the same directory as `openshift-install` and execute:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install create cluster --dir ckc1
+INFO Credentials loaded from default AWS environment variables 
+INFO Consuming Bootstrap Ignition Config from target directory 
+INFO Consuming Master Ignition Config from target directory 
+INFO Consuming Worker Ignition Config from target directory 
+INFO Creating infrastructure resources...
+```
+
+At this point, you can expect to wait (:coffee:) around 35 minutes in total. Terraforming is going-on, and all resources are being tagged for quick cleanup later. You won't be doing any manual TF work - everything is self-contained.
+
