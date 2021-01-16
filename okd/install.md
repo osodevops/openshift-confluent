@@ -424,5 +424,25 @@ INFO Waiting up to 40m0s for the cluster at https://api.ckc1.okd.osodevops.io:64
 
 We continue to wait, however - a large status dump will appear once complete:
 
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install create cluster --dir ckc1
+INFO Credentials loaded from default AWS environment variables 
+INFO Consuming Bootstrap Ignition Config from target directory 
+INFO Consuming Master Ignition Config from target directory 
+INFO Consuming Worker Ignition Config from target directory 
+INFO Creating infrastructure resources...         
+INFO Waiting up to 20m0s for the Kubernetes API at https://api.ckc1.okd.osodevops.io:6443... 
+INFO API v1.19.2-1008+70708036fc2657-dirty up     
+INFO Waiting up to 30m0s for bootstrapping to complete... 
+INFO Destroying the bootstrap resources...        
+INFO Waiting up to 40m0s for the cluster at https://api.ckc1.okd.osodevops.io:6443 to initialize... 
+INFO Waiting up to 10m0s for the openshift-console route to be created... 
+INFO Install complete!                            
+INFO To access the cluster as the system:admin user when using 'oc', run 'export KUBECONFIG=/path/to/aws_dev/ckc1/auth/kubeconfig' 
+INFO Access the OpenShift web-console here: https://console-openshift-console.ckc1.okd.osodevops.io 
+INFO Login to the console with user: "kubeadmin", and password: "XXXXXXXXXXX" 
+INFO Time elapsed: 36m21s                         
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
 
-
+Cluster creation is now complete.
