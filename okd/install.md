@@ -232,16 +232,18 @@ A word to the wise, however: the Kubernetes API is listening on the following ad
 
     api.<clustername>.<basedomain>.osodevops.io:6443
 
-If we remove `apps`, then we "fall back" into the same subdomain level as the API. This means, on the entire cluster, we cannot have *any* app use the `api` name for ingress/`Route`. Of course, you can have this, though:
+If we remove `apps`, then we "fall back" into the same subdomain level as the API. This means, on the entire cluster, we cannot have *any* app use the `api` name for `Ingress`/`Route`. Of course, you can have this, though:
 
     api-myapp.<clustername>.<basedomain>.osodevops.io
     
 But you see where this is going. Caveat Emptor.
 
+If you don't select a custom hostname endpoint for an `Ingress/Route`, then OKD will give you `<service>-<project>`, so that will be tacked onto the front of the now `apps`-less FQDN, so you should be safe. The danger comes when using custom hostname endpoints. More on this later.
+
 
 #### 1.3.3 Generating the Manifests
 
-**WARNING**
+:fire: WARNING :fire:
 - The `install-config.yaml` lives, by default after creation, in the artefact directory. Any operations on it like manifest generation will actually _consume_ (delete) the file. This is a curious design choice, but I am told it's for the best. :shrug:.
 - It's best practice to, post `install-config.yaml` generation, immediately copy the file out of the artefact directory so you have a backup copy. At worst it stops you needing to go through the rigmarole of the menu system again. At best it could be vital in understanding why a cluster isn't coming up (you could for example have selected the wrong subnet, or have a clashing CIDR, etc, and having access to the original yaml is good for troubleshooting that).
 
@@ -271,8 +273,11 @@ cluster-network-01-crd.yml                 etcd-client-secret.yaml          etcd
 
 For a typical install, we'll generally be interested in two items:
 
-- `cluster-ingress-02-config.yml`           <- It is here that we remove the `apps` part
-- `cluster-infrastructure-02-config.yml`    <- Change AWS instance type here
+| **FILE** | **DESCRIPTION** |
+|----------|-----------------|
+| `cluster-ingress-02-config.yml` | It is here that we remove the `apps` part |
+| `cluser-config.yml` | Change AWS instance type here |
+
 
 ##### 1.3.3.1 Removing the `apps` ingress subdomain
 
@@ -299,4 +304,7 @@ Edit the `cluster-ingress-02-config.yml` file and simply remove `apps.` (don't f
     spec:
       domain: ckc1.okd.osodevops.io
     status: {}
+
+##### 1.3.3.2 Adjusting the AWS instance type
+
 
