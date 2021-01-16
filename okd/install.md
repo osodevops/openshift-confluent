@@ -35,7 +35,7 @@ This step is where we use `openshift-install` to generate the `install-config.ya
 
 The `openshift-install` command presents a Golang-based ncurses menu system to allow you to build the architecture.
 
-Execute and follow - the `>` character is the cursor with which to select items. You need to give the `--dir DIRNAME` parameter. This `DIRNAME` will be where the TF state file for the cluster will be kept, as well as the initial `kubeconfig` and the `kubeadmin` user password is kept, among other things like logs. **KEEP THIS DIR SAFE**.
+Execute and follow - the `>` character is the cursor with which to select items. You need to give the `--dir DIRNAME` parameter. This `DIRNAME` will be where the TF state file for the cluster will be kept, as well as the initial `kubeconfig` and the `kubeadmin` user password is kept, among other things like logs. It is best practice to name this dir the same as the cluster name. **KEEP THIS DIR SAFE**.
 
 **NOTE**
 
@@ -151,6 +151,65 @@ INFO Install-Config created in: ckc1
 (AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
 ```
 Now we have the `install-config.yaml` file inside our artefact directory (`ckc1` - conveniently we name it the same as the cluster name).
+
+### 1.3. Customising the installation (before installation itself)
+
+The processing of the `install-config.yaml` and the general installation workflow is like this:
+
+`install-config.yaml` --> `manifest yamls` --> `ignition configs` --> `cluster creation`
+
+We can elect to go straight to the cluster creation, skipping dealing with the `install-config.yaml` if we wish (but the creation menu will still run us through the same menu as we do for generating the file).
+
+It's best to always generate the `install-config.yaml` file, so that we can re-use it for future clusters and save time.
+
+We can use the `install-config.yaml` to generate the cluster manifest yamls, which allow us to customise the installation before it begins. This, as mentioned previously, is where we can remove the annoying `apps` ingress subdomain, as well as update the AWS instance type of the nodes, etc.
+
+#### 1.3.1 Altering node counts
+
+Before we use the `install-config.yaml`, we can investigate it and change various aspects. We can change the VPC, subnets, the amount of node counts (replicas), among other things.
+
+Here is the `install-config.yaml` which we just generated:
+
+```
+apiVersion: v1
+baseDomain: okd.osodevops.io
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  platform: {}
+  replicas: 3
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: 3
+metadata:
+  creationTimestamp: null
+  name: ckc1
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 10.0.0.0/16
+  networkType: OVNKubernetes
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  aws:
+    region: eu-west-1
+publish: External
+pullSecret: '{"auths":{"fake":{"auth": "bar"}}}'
+sshKey: |
+  ssh-ed25519 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX dsw@orgonon
+```
+If you wish to have more, or less workers, then you can adjust this as above. However, do not change the number of masters, unless you wish to have a single master, in which case select `1`. Further to this, you can additionally use `0` workers, and the installer will know to mark the single master as `Schedulable` so that you can actually use it as a master/worker hybrid. This is a cheap way to test things - but you won't be able to update the cluster to a new version, etc.
+
+If in doubt, leave it as default 3 masters, 3 workers.
+
+#### 1.3.2 Generate the manifests
 
 
 
