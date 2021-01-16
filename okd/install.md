@@ -211,7 +211,7 @@ If in doubt, leave it as default 3 masters, 3 workers.
 
 #### 1.3.2 A word on removing `apps` from the ingress/`Router`
 
-As previously mentioned, we can do away with the annoying `apps` subdomain. If we keep it, then all pods/workloads will have the following nomenclature:
+As previously mentioned in step 1.2.4, we can do away with the annoying `apps` subdomain. If we keep it, then all pods/workloads will have the following nomenclature:
 
     <service>-<project>.apps.<clustername>.<basedomain>.osodevops.io
 
@@ -224,7 +224,29 @@ As you can see from the above FQDN placeholder for a typical deployment, it can 
     
 Truly grim. However, the general rule of thumb on OpenShift in general is to not touch the defaults for the default subsystems deployed on our behalf by the system, unless you absolutely have to - madness that way lies. Exceptions to this rule are the Ingress (known as the `Router`) - replacing the self-signed cert is a matter of course.
 
-By
+By removing the `apps`, this then is reduced to:
+
+    <service>-<project>.<clustername>.<basedomain>.osodevops.io
+    
+A word to the wise, however: the Kubernetes API is listening on the following address:
+
+    api.<clustername>.<basedomain>.osodevops.io:6443
+
+If we remove `apps`, then we "fall back" into the same subdomain level as the API. This means, on the entire cluster, we cannot have *any* app use the `api` name for ingress/`Route`. Of course, you can have this, though:
+
+    api-myapp.<clustername>.<basedomain>.osodevops.io
+    
+But you see where this is going. Caveat Emptor.
+
+
+#### 1.3.3 Generating the Manifests
+
+**WARNING**
+- The `install-config.yaml` lives, by default after creation, in the artefact directory. Any operations on it like manifest generation will actually _consume_ (delete) the file. This is a curious design choice, but I am told it's for the best. :shrug:.
+- It's best practice to, post `install-config.yaml` generation, immediately copy the file out of the artefact directory so you have a backup copy. At worst it stops you needing to go through the rigmarole of the menu system again. At best it could be vital in understanding why a cluster isn't coming up (you could for example have selected the wrong subnet, or have a clashing CIDR, etc, and having access to the original yaml is good for troubleshooting that).
+
+In order to generate the manifests so that we can customise, do the following:
+
 
 
 
