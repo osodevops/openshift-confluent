@@ -35,7 +35,7 @@ This step is where we use `openshift-install` to generate the `install-config.ya
 
 The `openshift-install` command presents a Golang-based ncurses menu system to allow you to build the architecture.
 
-Execute and follow - the `>` character is the cursor with which to select items.
+Execute and follow - the `>` character is the cursor with which to select items. You need to give the `--dir DIRNAME` parameter. This `DIRNAME` will be where the TF state file for the cluster will be kept, as well as the initial `kubeconfig` and the `kubeadmin` user password is kept, among other things like logs. **KEEP THIS DIR SAFE**.
 
 **NOTE**
 
@@ -126,7 +126,7 @@ I've opted for `ckc1` - an arbitrary choice, call it what you like, but it's not
 
 #### 1.2.4 `openshift-install` pull secret input
 
-The pull secret. Red Hat's (or should that now be Big Blue Hat?) "entitlement key" for accessing their paid-for registries (currently `registry.redhat.io`) which provide images which they actively scan/curate. This is currently a legal grey area, in that you are free to download an "official" pull secret via the Red Hat Developer Program (such as when you download the one-node Code Ready Container bundle, which allows you to bring up OpenShift on your laptop or something; much like minikube), but who knows when IBM will come calling (telemetry is actually pumped back to Red Hat on OpenShift/OKD - can be disabled). If this is deployed at a customer and they've been using a pull secret to which they are sort of legally not entitled, then it could spell trouble.
+The pull secret. Red Hat's (or should that now be Big Blue Hat?) "entitlement key" for accessing their paid-for registries (currently `registry.redhat.io`) which provide images which they actively scan/curate. This is currently a legal grey area, in that you are free to download an "official" pull secret via the Red Hat Developer Program (such as when you download the one-node Code Ready Container bundle, which allows you to bring up OpenShift on your laptop or something; much like minikube) and use it for OpenShift/OKD, but who knows when IBM will come calling (telemetry is actually pumped back to Red Hat on OpenShift/OKD - can be disabled). If this is deployed at a customer and they've been using a pull secret to which they are sort of legally not entitled, then it could spell trouble.
 
 The best way forward is to use a `NULL` pull secret:
 
@@ -136,10 +136,21 @@ The best way forward is to use a `NULL` pull secret:
 
 This means we have to use the old/deprecated registry (`registry.access.redhat.com`), and don't get access to the official operators initially (only the community ones), but we can easily enable them afterwards.
 
-Paste the NULL pull secret:
+Paste the NULL pull secret and press enter:
 
-
-
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./openshift-install create install-config --dir ckc1
+? SSH Public Key /home/dsw/.ssh/id_ed25519.pub
+? Platform aws
+INFO Credentials loaded from default AWS environment variables 
+? Region eu-west-1
+? Base Domain okd.osodevops.io
+? Cluster Name ckc1
+? Pull Secret [? for help] **********************************
+INFO Install-Config created in: ckc1              
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
+Now we have the `install-config.yaml` file
 
 
 
