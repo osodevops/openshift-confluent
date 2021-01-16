@@ -271,9 +271,32 @@ cluster-network-01-crd.yml                 etcd-client-secret.yaml          etcd
 
 For a typical install, we'll generally be interested in two items:
 
-- `cluster-ingress-02-config.yml`
-    It is here that we remove the `apps` part
-- `cluster-infrastructure-02-config.yml`
-    Change AWS instance type here
+- `cluster-ingress-02-config.yml`           <- It is here that we remove the `apps` part
+- `cluster-infrastructure-02-config.yml`    <- Change AWS instance type here
 
-    
+##### 1.3.3.1 Removing the `apps` ingress subdomain
+
+Edit the `cluster-ingress-02-config.yml` file and simply remove `apps.` (don't forget the dot):
+
+**Original**
+
+    apiVersion: config.openshift.io/v1
+    kind: Ingress
+    metadata:
+      creationTimestamp: null
+      name: cluster
+    spec:
+      domain: apps.ckc1.okd.osodevops.io
+    status: {}
+
+**Edited**
+
+    apiVersion: config.openshift.io/v1
+    kind: Ingress
+    metadata:
+      creationTimestamp: null
+      name: cluster
+    spec:
+      domain: ckc1.okd.osodevops.io
+    status: {}
+
