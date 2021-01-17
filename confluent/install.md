@@ -103,3 +103,28 @@ kubectl get crd | grep confluent
 Note: For Openshift Platform replace kubectl commands with 'oc' commands. If OpenShift Route enabled, port will be either 80/443
 (AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
 ```
+Check that the operator pod is up:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+cc-operator-95595745f-svn5m   1/1     Running   1          28s
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+## 1.5 Deploy ZooKeeper
+
+### 1.5.1 Create an SCC-based role/rolebinding
+
+In order to deploy ZK, we need to allow OKD to start privileged pods. This is where the is a deviation in the Confluent documentation for OpenShift/OKD.
+
+Create a custom role/rolebinding which leverage the `anyuid` Security Context Constraint (`SCC`), allowing a pod to run as any UID. Do not try to install the bundled `randomUID` or `customUID` yamls, which purport to do this for you. Things changed between 4.3 and 4.6, such that you'll need to execute the following:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc create role confluent-default-anyuid --verb=use --resource=scc --resource-name=anyuid -n confluent
+role.rbac.authorization.k8s.io/confluent-default-anyuid created
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc create rolebinding confluent-default-anyuid --role=confluent-default-anyuid --serviceaccount=confluent:default -n confluent
+rolebinding.rbac.authorization.k8s.io/confluent-default-anyuid created
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+This is allowing the default `ServiceAccount` to start pods with arbitrary UIDs.
