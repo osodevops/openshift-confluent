@@ -71,7 +71,37 @@ global:
          - eu-west-1c
 ......
 ```
-TODO: Add the rest.
+
+We also need to choose a name for our Kafka cluster, as well as select our domain:
+
+```
+......
+## Kafka Cluster
+##
+kafka:
+  name: kafka-oso
+  replicas: 3
+  disableHostPort: true
+  resources:
+    requests:
+      cpu: 300m
+      memory: 2Gi
+  loadBalancer:
+    enabled: false
+    domain: "okd.osodevops.io"
+  tls:
+    enabled: false
+    fullchain: |-
+    privkey: |-
+    cacerts: |-
+  configOverrides:
+    server:
+    - auto.create.topics.enable=true
+    - group.initial.rebalance.delay.ms=100
+  metricReporter:
+    enabled: true
+......
+```
 
 ## 1.4 Use helm3 to install Operator
 
@@ -216,6 +246,305 @@ zookeeper-2                   1/1     Running   0          4m53s
 (AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
 ```
 ## 1.6 Deploy Kafka Brokers
+
+Now we can bring up the Kafka cluster itself. We should have already named the cluster from step 1.3. We elected to call our
+particular one `kafka-oso`, and we specify that on command line:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ helm3 install kafka-oso ./confluent-operator -f values.yaml --namespace confluent --set kafka.enabled=true
+NAME: kafka-oso
+LAST DEPLOYED: Sun Jan 17 15:21:59 2021 
+NAMESPACE: confluent
+STATUS: deployed                                                              
+REVISION: 1
+TEST SUITE: None                                                              
+NOTES:
+Kafka Cluster Deployment    
+                                                                                                                                                             
+Kafka Cluster is deployed to kubernetes through CR Object
+                                                                              
+  0. List of Deprecated Features (if any)
+                                                                              
+
+  1. Validate if Kafka Custom Resource (CR) is created                                                                                                       
+
+     kubectl get kafka -n confluent | grep kafka-oso
+
+  2. Check the status/events of CR: kafka-oso    
+                                                                              
+     kubectl describe kafka kafka-oso -n confluent
+                                                                                                                                                             
+  3. Check if Kafka cluster is Ready
+                                                                              
+     kubectl get kafka kafka-oso -ojson -n confluent
+                                                                              
+     kubectl get kafka kafka-oso -ojsonpath='{.status.phase}' -n confluent
+                                                                              
+  4.  Broker Listener (Protocol/Port)
+                                                                                                                                                             
+      External Listener: kubectl  -n confluent  get kafka kafka-oso -ojsonpath='{.status.brokerExternalListener}'
+      Internal Listener: kubectl  -n confluent  get kafka kafka-oso -ojsonpath='{.status.brokerInternalListener}'
+
+      Note: If Protocol is SSL, configure truststore (https://docs.confluent.io/current/kafka/encryption.html#clients) and keystore 
+        (https://docs.confluent.io/current/kafka/authentication_ssl.html#clients) if client Authentication is enabled (
+        kubectl  -n confluent  get kafka kafka-oso -ojsonpath='{.status.clientAuthentication}' )                                                
+
+  5. Update/Upgrade Kafka Cluster                                                                                                                            
+                                                                              
+     The upgrade can be done either through the helm upgrade or by editing the CR directly as below;
+
+     kubectl edit kafka kafka-oso  -n confluent
+
+     Note: Switching Kafka security requires manual restart of all the dependent components as the JAAS configuration changes is required.
+
+  6. All Kafka Information like zookeeper connect, replications factor, isr, Client Jaas Configuration
+     and much more can be found on the Status section of CR.
+
+     kubectl get kafka kafka-oso -n confluent -oyaml
+
+  7. Client Access:
+
+     Run below command to validate if Kafka cluster is working.
+
+     1. Get the Client Jaas Information 
+        Internal : kubectl  -n confluent  get kafka kafka-oso -ojsonpath='{.status.internalClient}' > kafka.properties
+     2. To get the Bootstrap endpoint
+
+        kubectl -n confluent get kafka kafka-oso -ojsonpath='{.status.bootstrapEndpoint}'
+
+     3. To get the Replication Factor
+
+        kubectl -n confluent get kafka kafka-oso -ojsonpath='{.status.replicationFactor}'
+
+     4. To get the Zookeeper Connect endpoint
+
+        kubectl -n confluent get kafka kafka-oso -ojsonpath='{.status.zookeeperConnect}'
+    Internal:
+
+        - Go to one of the Kafka Pods
+
+          kubectl -n confluent exec -it kafka-oso-0 bash
+
+        - Inside the pod, run below command
+
+cat <<EOF > kafka.properties
+## Copy information from kafka.properties available in step 7 (Client Access) step 1.
+EOF
+            + Check brokers API versions
+
+              Get <bootstrapEndpoint> from step 2
+
+              kafka-broker-api-versions --command-config kafka.properties --bootstrap-server <bootstrapEndpoint>
+
+            + Run command to create topic
+
+              Get <replicationFactor> from step 3
+              Get <zookeeperConnect> from step 4
+
+              kafka-topics --create --zookeeper <zookeeperConnect> --replication-factor <replicationFactor> --partitions 1 --topic example
+
+              Note: Above command only works inside the kubernetes network
+
+            + Run command to Publish events on topic example
+
+              Get <bootstrapEndpoint> from step 2
+
+              seq 10000 | kafka-console-producer --topic example --broker-list <bootstrapEndpoint> --producer.config kafka.properties
+
+            + Run command to Consume events on topic example (run in different terminal)
+
+              Get <bootstrapEndpoint> from step 2
+
+              kafka-console-consumer --from-beginning --topic example --bootstrap-server  <bootstrapEndpoint> --consumer.config kafka.properties
+
+Note: For Openshift Platform replace kubectl commands with 'oc' commands. If OpenShift Route enabled, port will be either 80/443
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+Again here we can check that all is running nicely:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ echo $(oc get kafka kafka-oso -ojsonpath='{.status.phase}' -n confluent)
+RUNNING
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+.. as well as interrogate the pod list to see it all `Running`:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+cc-operator-95595745f-svn5m   1/1     Running   1          24m
+kafka-oso-0                   1/1     Running   0          3m42s
+kafka-oso-1                   1/1     Running   0          3m42s
+kafka-oso-2                   1/1     Running   0          3m42s
+zookeeper-0                   1/1     Running   0          11m
+zookeeper-1                   1/1     Running   0          11m
+zookeeper-2                   1/1     Running   0          11m
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$
+```
+
+## 1.7 Deploy Schema Registry
+
+Deploy as follows:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ helm3 install schemaregistry ./confluent-operator -f values.yaml --namespace confluent --set schemaregistry.enabled=true
+NAME: schemaregistry
+LAST DEPLOYED: Sun Jan 17 15:27:19 2021
+NAMESPACE: confluent
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+Schema Registry is deployed through PSC. Configure Schema Registry through REST Endpoint
+
+  0. List of Deprecated Features (if any)
+     
+
+  1. Validate if schema registry cluster is running
+
+     kubectl get pods -n confluent | grep schemaregistry
+
+  2. Access
+    Internal REST Endpoint : http://schemaregistry:8081  (Inside kubernetes)
+
+    OR
+
+    http://localhost:8081 (Inside Pod)
+
+    More information about schema registry REST API can be found here,
+
+    https://docs.confluent.io/current/schema-registry/docs/api.html
+
+Note: For Openshift Platform replace kubectl commands with 'oc' commands. If OpenShift Route enabled, port will be either 80/443
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+Check that we are up and running:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+cc-operator-95595745f-svn5m   1/1     Running   1          26m
+kafka-oso-0                   1/1     Running   0          5m49s
+kafka-oso-1                   1/1     Running   0          5m49s
+kafka-oso-2                   1/1     Running   0          5m49s
+schemaregistry-0              0/1     Running   0          32s           <-- 
+schemaregistry-1              0/1     Running   0          32s           <--
+zookeeper-0                   1/1     Running   0          14m
+zookeeper-1                   1/1     Running   0          14m
+zookeeper-2                   1/1     Running   0          14m
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+## 1.8 Deploy Control Center
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ helm3 install controlcenter ./confluent-operator -f values.yaml --namespace confluent --set controlcenter.enabled=true
+NAME: controlcenter
+LAST DEPLOYED: Sun Jan 17 15:29:26 2021
+NAMESPACE: confluent
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+ControlCenter Deployment
+
+ControlCenter is deployed through PSC
+
+   0. List of Deprecated Features (if any)
+      
+
+   1. Validate if controlcenter is running
+
+     kubectl get pods -n confluent | grep controlcenter
+
+   2. Access
+      External: http://controlcenter.rd-sky.net:80
+      Internal: http://controlcenter:9021 (Inside Kubernetes)
+      
+      Local Test:
+
+        kubectl -n confluent port-forward controlcenter-0 12345:9021
+        Open on browser: http://localhost:12345
+
+   3. Authentication: Basic
+
+Note: For Openshift Platform replace kubectl commands with 'oc' commands. If OpenShift Route enabled, port will be either 80/443
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+And check all is well:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+cc-operator-95595745f-svn5m   1/1     Running   1          29m
+controlcenter-0               0/1     Running   0          80s
+kafka-oso-0                   1/1     Running   0          8m45s
+kafka-oso-1                   1/1     Running   0          8m45s
+kafka-oso-2                   1/1     Running   0          8m45s
+schemaregistry-0              1/1     Running   0          3m28s
+schemaregistry-1              1/1     Running   0          3m28s
+zookeeper-0                   1/1     Running   0          16m
+zookeeper-1                   1/1     Running   0          16m
+zookeeper-2                   1/1     Running   0          16m
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+## 1.9 Deploy Kafka Connect Framework
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ helm3 install connectors ./confluent-operator -f values.yaml --set connect.enabled=true
+NAME: connectors
+LAST DEPLOYED: Sun Jan 17 15:31:39 2021
+NAMESPACE: confluent
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+Connect Cluster Deployment
+
+Connect Cluster is deployed through PSC. To configure connectors use ControlCenter or Use REST API to configure.
+The Connect Cluster endpoint does not support authorization and must not be open for Internet Access.
+
+  0. List of Deprecated Features (if any)
+     
+
+  1. Validate if connect cluster is running
+
+     kubectl get pods -n confluent | grep connectors
+
+  2. Access
+     Internal REST Endpoint : http://connectors:8083 (Inside Kubernetes)
+
+     OR
+
+     http://localhost:8083 (Inside Pod)
+
+     More information can be found here: https://docs.confluent.io/current/connect/references/restapi.html
+
+Note: For Openshift Platform replace kubectl commands with 'oc' commands. If OpenShift Route enabled, port will be either 80/443
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+Check that everything is up:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+cc-operator-95595745f-svn5m   1/1     Running   1          31m
+connectors-0                  0/1     Running   0          28s
+controlcenter-0               1/1     Running   0          2m40s
+kafka-oso-0                   1/1     Running   0          10m
+kafka-oso-1                   1/1     Running   0          10m
+kafka-oso-2                   1/1     Running   0          10m
+schemaregistry-0              1/1     Running   0          4m48s
+schemaregistry-1              1/1     Running   0          4m48s
+zookeeper-0                   1/1     Running   0          18m
+zookeeper-1                   1/1     Running   0          18m
+zookeeper-2                   1/1     Running   0          18m
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
 
 
 
