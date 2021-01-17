@@ -566,4 +566,4 @@ route.route.openshift.io/controlcenter created
 (AWS: oso_okd-admin)_[dsw@orgonon helm]$
 ```
 
-All done.
+All done - Control Center is now available on https://franz.ckc1.okd.osodevops.io.
