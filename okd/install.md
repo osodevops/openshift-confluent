@@ -450,7 +450,50 @@ INFO Time elapsed: 36m21s
 (AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
 ```
 
-Cluster creation is now complete.  TODO: Add Day2 ops.
+You can now login to the cluster:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./oc login -u kubeadmin https://api.ckc1.okd.osodevops.io:6443
+Authentication required for https://api.ckc1.okd.osodevops.io:6443 (openshift)
+Username: kubeadmin
+Password: 
+
+Login successful.
+
+You have access to 59 projects, the list has been suppressed. You can list all projects with ' projects'
+
+Using project "default".
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
+You'll see this is basically Kubernetes:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ oc get node
+NAME                                         STATUS   ROLES    AGE    VERSION
+ip-10-0-133-38.eu-west-1.compute.internal    Ready    worker   134m   v1.19.2+7070803-1008
+ip-10-0-147-135.eu-west-1.compute.internal   Ready    master   147m   v1.19.2+7070803-1008
+ip-10-0-172-152.eu-west-1.compute.internal   Ready    worker   134m   v1.19.2+7070803-1008
+ip-10-0-181-119.eu-west-1.compute.internal   Ready    master   147m   v1.19.2+7070803-1008
+ip-10-0-204-1.eu-west-1.compute.internal     Ready    worker   134m   v1.19.2+7070803-1008
+ip-10-0-210-130.eu-west-1.compute.internal   Ready    master   147m   v1.19.2+7070803-1008
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
+
+Also with `kubectl`:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ ./kubectl get node
+NAME                                         STATUS   ROLES    AGE    VERSION
+ip-10-0-133-38.eu-west-1.compute.internal    Ready    worker   135m   v1.19.2+7070803-1008
+ip-10-0-147-135.eu-west-1.compute.internal   Ready    master   148m   v1.19.2+7070803-1008
+ip-10-0-172-152.eu-west-1.compute.internal   Ready    worker   135m   v1.19.2+7070803-1008
+ip-10-0-181-119.eu-west-1.compute.internal   Ready    master   147m   v1.19.2+7070803-1008
+ip-10-0-204-1.eu-west-1.compute.internal     Ready    worker   135m   v1.19.2+7070803-1008
+ip-10-0-210-130.eu-west-1.compute.internal   Ready    master   147m   v1.19.2+7070803-1008
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
+```
+
+:heavy_check_mark: Cluster creation is now complete.  TODO: Add Day2 ops.
 
 # 3. Destruction of OKD cluster
 
