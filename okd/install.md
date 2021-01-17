@@ -390,7 +390,12 @@ INFO Creating infrastructure resources...
 
 At this point, you can expect to wait (:coffee:) around 35 minutes in total. Terraforming is going-on, and all resources are being tagged for quick cleanup later. You won't be doing any manual TF work - everything is self-contained.
 
-Any errors about `Route reflector` can be ignored, as long as they do not persist more than a few mins / half-a-dozen or so messages.
+Any errors similar to `Route.v1 reflector` can be ignored, as long as they do not persist more than a few mins / half-a-dozen or so messages:
+
+```
+I0117 11:28:46.731279 2335775 trace.go:116] Trace[232342952]: "Reflector ListAndWatch" name:k8s.io/client-go/tools/watch/informerwatcher.go:146 (started: 2021-01-17 11:28:36.645469781 +0000 GMT m=+1199.348390821) (total time: 10.085778144s):
+Trace[232342952]: [10.08573875s] [10.08573875s] Objects listed
+```
 
 As things progress, you'll see some positive milestones:
 
