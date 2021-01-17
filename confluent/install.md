@@ -128,3 +128,94 @@ rolebinding.rbac.authorization.k8s.io/confluent-default-anyuid created
 (AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
 ```
 This is allowing the default `ServiceAccount` to start pods with arbitrary UIDs.
+
+### 1.5.2 Adjust the `StorageClass` to support Multi-AZ
+
+We need to update the `StorageClass` in the `values.yaml` file to use a zonally-aware `volumeBindingMode`. This is not considered in Confluent's documentation as far as I can see, but it will result in volume conflicts when scheduling pods. By default, the mode is `Immediate`, which creates an EBS volume and binds it to the node which registered the PVC. This is unlikely to always line up with
+the right Pod in the the right node in the right AZ, and so the Pod (or even the node) will be unable to use the PV. By setting the
+mode to `WaitForFirstConsumer`, the PV is guaranteed to be created in the same AZ as the Pod, and therefore the node.
+
+```
+storage:
+  provisioner: kubernetes.io/aws-ebs
+  volumeBindingMode: WaitForFirstConsumer   <-- Add this
+  reclaimPolicy: Delete                     <-- Optionaly make this Retain if you want to keep data around after PVC deletion
+  parameters:
+    encrypted: "false"
+    kmsKeyId: ""
+    type: gp2
+```
+
+### 1.5.3 Create the ZooKeeper ensemble
+
+Now we can deploy ZK:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ helm3 install zookeeper ./confluent-operator -f values.yaml --namespace confluent --set zookeeper.enabled=true
+NAME: zookeeper
+LAST DEPLOYED: Sun Jan 17 15:13:46 2021
+NAMESPACE: confluent
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+Zookeeper Cluster Deployment
+
+Zookeeper cluster is deployed through CR.
+
+  0. List of Deprecated Features (if any)
+     
+
+  1. Validate if Zookeeper Custom Resource (CR) is created
+
+     kubectl get zookeeper -n confluent | grep zookeeper
+
+  2. Check the status/events of CR: zookeeper
+
+     kubectl describe zookeeper zookeeper -n confluent
+
+  3. Check if Zookeeper cluster is Ready
+
+     kubectl get zookeeper zookeeper -ojson -n confluent
+
+     kubectl get zookeeper zookeeper -ojsonpath='{.status.phase}' -n confluent
+
+  4. Update/Upgrade Zookeeper Cluster
+
+     The upgrade can be done either through the helm upgrade or by editing the CR directly as below;
+
+     kubectl edit zookeeper zookeeper  -n confluent
+
+Note: For Openshift Platform replace kubectl commands with 'oc' commands. If OpenShift Route enabled, port will be either 80/443
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+**NOTE**
+- We are given a heads-up by the deployment `NOTES` as to how to check that all is well:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ echo $(oc get zookeeper zookeeper -ojsonpath='{.status.phase}' -n confluent)
+RUNNING
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+
+**NOTE**
+- If you see `PENDING`, you can check the output of `oc get events --sort-by=.metadata.creationTimestamp`. It could be, that your cluster does
+not have enough resources, or more commonly, `Pending` deployments hanging indefinitely are usually due to PV-based problems (such as the
+`StorageClass` issue mentioned above, so be sure you switched the `StorageClass` to `WaitForFirstConsumer`.
+
+The pods also show we are up:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+cc-operator-95595745f-svn5m   1/1     Running   1          17m
+zookeeper-0                   1/1     Running   0          4m53s
+zookeeper-1                   1/1     Running   0          4m53s
+zookeeper-2                   1/1     Running   0          4m53s
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
+```
+## 1.6 Deploy Kafka Brokers
+
+
+
