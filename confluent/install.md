@@ -546,5 +546,24 @@ zookeeper-2                   1/1     Running   0          18m
 (AWS: oso_okd-admin)_[dsw@orgonon helm]$ 
 ```
 
+## 2.0 Expose Control Center to the World
 
+Now that Kafka has been deployed, we can open the `Ingress/Route` up to the world (or wherever your VPC is scoped).
 
+However, first we must get rid of the **PORT 80** (:cry:) AWS LB which the operator created on our behalf, and also create a more secure route:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc delete svc controlcenter-bootstrap-lb
+service "controlcenter-bootstrap-lb" deleted
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$          
+```
+
+And now the route:
+
+```
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$ oc create route edge controlcenter --service controlcenter --hostname franz.ckc1.okd.osodevops.io
+route.route.openshift.io/controlcenter created
+(AWS: oso_okd-admin)_[dsw@orgonon helm]$
+```
+
+All done.
