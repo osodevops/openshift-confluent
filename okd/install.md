@@ -460,5 +460,10 @@ INFO Disassociated                                 instance=i-0436447647934177a 
 INFO Deleted                                       InstanceProfileName=ckc1-s7phs-worker-profile arn="arn:aws:iam::498266025115:instance-profile/ckc1-s7phs-worker-profile" instance=i-0436447647934177a
 INFO Terminated                                    instance=i-0027d0216323bfd3c
 . . . .
+INFO Deleted                                       arn="arn:aws:ec2:eu-west-1:498266025115:vpc/vpc-09d188365400774df" id=vpc-09d188365400774df table=rtb-0a2ccae8047e0bb82
+INFO Deleted                                       arn="arn:aws:ec2:eu-west-1:498266025115:vpc/vpc-09d188365400774df" id=vpc-09d188365400774df
+INFO Deleted                                       arn="arn:aws:ec2:eu-west-1:498266025115:dhcp-options/dopt-0fec112a90b66c53e" id=dopt-0fec112a90b66c53e
+INFO Time elapsed: 3m16s                          
+(AWS: oso_okd-admin)_[dsw@orgonon aws_dev]$ 
 ```
 The state from the artefact directory will also be deleted. It's best practice to completely delete the artefact directory afterwards, as it contains a dotfile (the logs from previous install/destroy).
